@@ -44,25 +44,23 @@ class Product(db.Model):
         return '<id {}>'.format(self.id)
     
     def serialize(self):
-        
         return {
             'sku':self.sku,
             'name': self.name,
             'description': self.description,
             'status': self.status
         }
- 
-
-
+    
 def f1(x):
     if '\n' in x:
         return x.replace('\n','')
     else:
         return x
 
+    
 def csv_to_db(path):
     try:
-        state = ['active','inactive']
+        state = ['active','disabled']
         df = pd.read_csv(path)
         print(df.shape)
         order = ['sku','name','description','status']
@@ -70,11 +68,11 @@ def csv_to_db(path):
         df['description'] = df['description'].apply(f1)
         df['status'] = [random.choice(state) for i in range(df.shape[0])]
         df = df[order]   
-        df.to_csv('cleaned_csv.csv',index=False,headers=False)
+        df.to_csv('./data/cleaned_csv.csv',index=False,headers=False)
         del df
         conn = psycopg2.connect("host='localhost' dbname='products' user='anvgag' password='password'")
         cur = conn.cursor()
-        f = open('cleaned_csv.csv', 'r')
+        f = open('./data/cleaned_csv.csv', 'r')
         cur.copy_from(f,'products',sep=',')
         f.close()
         conn.commit()
@@ -100,8 +98,7 @@ def upload():
     try:
         with open(save_path, 'ab') as f:
             f.seek(int(request.form['dzchunkbyteoffset']))
-            temp = file.stream.read()
-            f.write(temp.replace(b'.\n',b'.'))
+            f.write(file.stream.read())
     except OSError:
         return make_response(("Not sure why,"
                               " but we couldn't write the file to disk", 500))
@@ -155,7 +152,7 @@ def get():
             return(str(e))
     else:
         try:            
-            temp = Product.query.filter(Product.name.like('%' + search + '%')).offset(offset).limit(limit)
+            temp = Product.query.filter(Product.status.like('%' + search + '%')).offset(offset).limit(limit)
             rows = Product.query.filter(Product.status.like('%' + search + '%')).count()
             products = [e.serialize() for e in temp]
             return jsonify({"total": rows,"totalNotFiltered": rows,"rows":products})
