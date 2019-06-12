@@ -122,9 +122,10 @@ def create_record(save_path):
                 db.session.add(product)
                 db.session.commit()
             else:
-                dup_check.name = row[header_dict['name']]
-                dup_check.description = row[header_dict['description']]
-                dup_check.status = random.choice(state)
+                update_record = dup_check.first()
+                update_recordupdate_record.name = row[header_dict['name']]
+                update_record.description = row[header_dict['description']]
+                update_record.status = random.choice(state)
                 db.session.commit()      
             
         
@@ -191,9 +192,11 @@ def insert():
                 db.session.add(product)
                 db.session.commit()
             else:
-                dup_check.name = name
-                dup_check.description = description
-                dup_check.status = random.choice(state)
+                print("else")
+                update_record = dup_check.first()
+                update_record.name = name
+                update_record.description = description
+                update_record.status = random.choice(state)
                 db.session.commit()      
             return "Product added"
         except Exception as e:
